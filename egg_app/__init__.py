@@ -1,6 +1,6 @@
 """Farm Fresh Egg App package."""
 
-PICKUP_LOCATION = "Science World"
+PICKUP_LOCATION = "4685 Valley Dr, Vancouver, BC V6J 5M2"
 PICKUP_TIME = "7:00 PM"
 
 PRICE_TRAY = 20

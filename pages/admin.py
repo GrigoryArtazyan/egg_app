@@ -134,6 +134,36 @@ save_col, dl_col = st.columns(2)
 
 with save_col:
     if st.button("💾 Save changes", type="primary"):
+        # #region agent log
+        try:
+            import json as _json, time as _t, math as _m
+            def _nan(v):
+                try:
+                    return _m.isnan(float(v))
+                except (TypeError, ValueError):
+                    return False
+            _rows = [
+                {
+                    "trays_repr": repr(_r.get("trays")),
+                    "trays_type": type(_r.get("trays")).__name__,
+                    "trays_nan": _nan(_r.get("trays")),
+                    "dozens_repr": repr(_r.get("dozens")),
+                    "dozens_type": type(_r.get("dozens")).__name__,
+                    "dozens_nan": _nan(_r.get("dozens")),
+                }
+                for _r in edited
+            ]
+            with open("/Users/grigoryartazyan/Desktop/egg_app/.cursor/debug-820333.log", "a") as _f:
+                _f.write(_json.dumps({
+                    "sessionId": "820333", "runId": "run1", "hypothesisId": "A",
+                    "location": "pages/admin.py:138",
+                    "message": "save rows raw trays/dozens values",
+                    "data": {"n_rows": len(edited), "rows": _rows},
+                    "timestamp": int(_t.time() * 1000),
+                }) + "\n")
+        except Exception:
+            pass
+        # #endregion
         # Recompute derived totals for the edited (visible) rows.
         for r in edited:
             trays = int(r.get("trays") or 0)

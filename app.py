@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import streamlit as st
 
 from egg_app import (
@@ -15,6 +17,8 @@ from egg_app import (
 )
 from egg_app import dates, storage, styles
 
+TRAY_IMG = Path(__file__).parent / "img" / "tray_eggs_image.png"
+
 st.set_page_config(page_title="Farm Fresh Eggs", page_icon="🥚", layout="centered")
 styles.inject()
 
@@ -27,11 +31,13 @@ def _fmt_date(d) -> str:
     return d.strftime("%A, %B %-d, %Y")
 
 
-pickup_options = dates.upcoming_pickup_dates(count=4)
+pickup_options = dates.upcoming_pickup_dates()
 
 if st.session_state.get("order_confirmed"):
     o = st.session_state["last_order"]
     styles.section("You're all set! 🎉")
+    if o.get("product") == "tray" and TRAY_IMG.exists():
+        st.image(str(TRAY_IMG), use_container_width=True)
     st.markdown(
         f"""
 <div class="egg-card">
@@ -51,42 +57,61 @@ Your order is saved. See you at pickup, {o['name']}! 🥚
     if st.button("Place another order"):
         st.session_state.pop("order_confirmed", None)
         st.session_state.pop("last_order", None)
+        st.session_state.pop("product", None)
         st.rerun()
     st.stop()
 
 
 styles.section("Choose your eggs")
-st.markdown(
-    f"""
-<div class="egg-card">
-🥚 <b>Tray</b> — {EGGS_PER_TRAY} eggs · <span class="egg-price">${PRICE_TRAY}</span>
-&nbsp;&nbsp;<i>(best value)</i><br>
-🥚 <b>Dozen</b> — {EGGS_PER_DOZEN} eggs · <span class="egg-price">${PRICE_DOZEN}</span>
-</div>
-""",
-    unsafe_allow_html=True,
-)
+
+product = st.session_state.get("product")
+
+
+def _option(col, key: str, emoji: str, name: str, eggs: int, price: int, best: bool):
+    selected = product == key
+    check = "✓ " if selected else ""
+    best_line = "\n\n⭐ BEST VALUE" if best else ""
+    label = f"{emoji}\n\n{check}**{name}**\n\n{eggs} eggs · \\${price}{best_line}"
+    with col:
+        if st.button(label, key=f"pick_{key}", use_container_width=True):
+            st.session_state["product"] = key
+            st.rerun()
+
+
+c1, c2 = st.columns(2)
+_option(c1, "tray", "🥚", "Tray", EGGS_PER_TRAY, PRICE_TRAY, best=True)
+_option(c2, "dozen", "🥚", "Dozen", EGGS_PER_DOZEN, PRICE_DOZEN, best=False)
+styles.option_state(product)
+
+if not product:
+    st.caption("👆 Tap an option to continue.")
+    st.stop()
+
+is_tray = product == "tray"
+unit_label = "Tray" if is_tray else "Dozen"
+unit_eggs = EGGS_PER_TRAY if is_tray else EGGS_PER_DOZEN
+
+if not pickup_options:
+    st.warning("No pickup dates are available right now — please check back soon! 🥚")
+    st.stop()
+
+styles.section("Your details")
 
 with st.form("order_form"):
+    qty = st.number_input(
+        f"How many {unit_label.lower()}s?", min_value=1, max_value=50, value=1, step=1
+    )
     name = st.text_input("Your name")
     phone = st.text_input("Mobile number", placeholder="(555) 123-4567")
 
-    c1, c2 = st.columns(2)
-    with c1:
-        trays = st.number_input(
-            "Trays (30 eggs)", min_value=0, max_value=50, value=0, step=1
-        )
-    with c2:
-        dozens = st.number_input(
-            "Dozens (12 eggs)", min_value=0, max_value=50, value=0, step=1
-        )
-
-    pickup = st.selectbox(
-        "Pickup date", options=pickup_options, format_func=_fmt_date
-    )
+    pickup = st.selectbox("Pickup date", options=pickup_options, format_func=_fmt_date)
     st.caption(f"All pickups: {PICKUP_LOCATION} at {PICKUP_TIME}. 💵 Cash preferred.")
 
-    submitted = st.form_submit_button("🥚 Pre-order now")
+    submitted = st.form_submit_button("🥚 Confirm order")
+
+if st.button("← Change selection"):
+    st.session_state.pop("product", None)
+    st.rerun()
 
 if submitted:
     norm_phone = storage.normalize_phone(phone)
@@ -95,30 +120,25 @@ if submitted:
         errors.append("Please enter your name.")
     if not norm_phone:
         errors.append("Please enter a valid mobile number.")
-    if int(trays) == 0 and int(dozens) == 0:
-        errors.append("Add at least one tray or dozen.")
 
     if errors:
         for e in errors:
             st.error(e)
         st.stop()
 
-    total_eggs, total_price = order_totals(int(trays), int(dozens))
+    trays = int(qty) if is_tray else 0
+    dozens = int(qty) if not is_tray else 0
+    total_eggs, total_price = order_totals(trays, dozens)
     pickup_str = _fmt_date(pickup)
-    summary_parts = []
-    if int(trays):
-        summary_parts.append(f"{int(trays)} tray{'s' if trays != 1 else ''}")
-    if int(dozens):
-        summary_parts.append(f"{int(dozens)} dozen")
-    summary = " + ".join(summary_parts)
+    summary = f"{int(qty)} {unit_label.lower()}{'s' if qty != 1 else ''} ({unit_eggs * int(qty)} eggs)"
 
     try:
         storage.upsert_customer(norm_phone, name.strip())
         order_id = storage.add_order(
             phone=norm_phone,
             name=name.strip(),
-            trays=int(trays),
-            dozens=int(dozens),
+            trays=trays,
+            dozens=dozens,
             total_eggs=total_eggs,
             total_price=total_price,
             pickup_date=pickup_str,
@@ -136,6 +156,7 @@ if submitted:
         "order_id": order_id,
         "name": name.strip(),
         "phone": norm_phone,
+        "product": product,
         "summary": summary,
         "total_eggs": total_eggs,
         "total_price": total_price,

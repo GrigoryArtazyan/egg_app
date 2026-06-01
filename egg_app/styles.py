@@ -108,6 +108,29 @@ html, body, [class*="css"], .stApp {
     text-align: center;
 }
 
+/* Product option tiles rendered as full clickable buttons */
+.st-key-pick_tray button, .st-key-pick_dozen button {
+    transform: none !important;
+    font-family: 'Bangers', cursive !important;
+    letter-spacing: 1px;
+    background: #fff !important;
+    color: var(--ink) !important;
+    border: 3px solid var(--ink) !important;
+    border-radius: 16px !important;
+    box-shadow: 4px 4px 0 rgba(58,36,21,0.18) !important;
+    min-height: 160px !important;
+    padding: 0.8rem 0.5rem !important;
+    line-height: 1.35 !important;
+    transition: opacity 0.12s ease, box-shadow 0.12s ease, transform 0.12s ease;
+}
+.st-key-pick_tray button:hover, .st-key-pick_dozen button:hover {
+    background: #fff7ec !important;
+    transform: translateY(-2px) !important;
+}
+.st-key-pick_tray button p, .st-key-pick_dozen button p { margin: 0.1rem 0 !important; }
+.st-key-pick_tray button p:first-child,
+.st-key-pick_dozen button p:first-child { font-size: 2.2rem !important; }
+
 /* Tighten default padding so content fills small screens */
 .block-container {
     padding-top: 2rem;
@@ -151,3 +174,30 @@ def subtitle(text: str) -> None:
 
 def section(text: str) -> None:
     st.markdown(f'<div class="egg-section">{text}</div>', unsafe_allow_html=True)
+
+
+_SELECTED = """
+.st-key-pick_{sel} button {{
+    border-color: var(--yolk) !important;
+    background: #fff7ec !important;
+    box-shadow: 5px 5px 0 var(--yolk) !important;
+}}
+.st-key-pick_{other} button {{
+    opacity: 0.4 !important;
+    filter: grayscale(0.6) !important;
+    box-shadow: none !important;
+}}
+.st-key-pick_{other} button:hover {{
+    opacity: 0.65 !important;
+    background: #fff !important;
+}}
+"""
+
+
+def option_state(product: str | None) -> None:
+    """Highlight the chosen option tile and shade the other one."""
+    if product not in ("tray", "dozen"):
+        return
+    other = "dozen" if product == "tray" else "tray"
+    css = _SELECTED.format(sel=product, other=other)
+    st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
