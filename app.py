@@ -13,7 +13,7 @@ from egg_app import (
     PRICE_TRAY,
     order_totals,
 )
-from egg_app import dates, sms, storage, styles
+from egg_app import dates, storage, styles
 
 st.set_page_config(page_title="Farm Fresh Eggs", page_icon="🥚", layout="centered")
 styles.inject()
@@ -41,7 +41,7 @@ if st.session_state.get("order_confirmed"):
 📍 Pickup: <b>{PICKUP_LOCATION}</b> at <b>{PICKUP_TIME}</b><br>
 🗓️ {o['pickup_date']}<br>
 💵 <b>Cash preferred</b> at pickup<br><br>
-We'll text <b>{o['phone']}</b> with the details. Thanks, {o['name']}!
+Your order is saved. See you at pickup, {o['name']}! 🥚
 </div>
 """,
         unsafe_allow_html=True,
@@ -124,12 +124,6 @@ if submitted:
             pickup_date=pickup_str,
         )
         count = storage.order_count(norm_phone)
-        sms.send_sms(
-            norm_phone,
-            f"Hi {name.strip()}! Order #{order_id} confirmed: {summary} "
-            f"(${total_price}). Pickup {pickup_str} at {PICKUP_TIME}, "
-            f"{PICKUP_LOCATION}. See you there! 🥚",
-        )
     except Exception as exc:  # noqa: BLE001
         st.error(
             "Sorry, we couldn't save your order. Please try again in a moment."

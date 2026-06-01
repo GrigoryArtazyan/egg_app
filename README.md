@@ -1,9 +1,8 @@
 # 🥚 Farm Fresh Egg App
 
 A simple Streamlit pre-order app for farm-fresh eggs. Customers enter their
-name, phone, and quantity; pickup details are confirmed in-app and via a
-(stubbed) SMS. Pickup is the **last Saturday of each month, 7:00 PM @ Science
-World**.
+name, phone, and quantity; pickup details are confirmed in-app. Pickup is the
+**last Saturday of each month, 7:00 PM @ Science World**.
 
 ## Products
 
@@ -34,12 +33,11 @@ That's it — no external accounts or services needed.
 
 ## Data
 
-Orders, customers, and messages are stored as plain CSV files in a local
-`data/` folder, created automatically on first order:
+Orders and customers are stored as plain CSV files in a local `data/` folder,
+created automatically on first order:
 
 - `data/customers.csv`
 - `data/orders.csv`
-- `data/messages.csv` (stubbed SMS log)
 
 `data/` is gitignored so customer info isn't committed.
 
@@ -51,13 +49,6 @@ your `admin_password`. From there you can view, **edit, and delete** orders in
 a table, filter by pickup date, download CSV, and see per-pickup rollups
 (trays, dozens, total eggs, revenue).
 
-## SMS
-
-SMS is currently **stubbed** — messages are logged to `data/messages.csv`
-instead of being sent. The `send_sms(to, body)` interface in `egg_app/sms.py`
-matches what a Twilio client needs, so wiring in real SMS later is a
-one-function change.
-
 ## Project structure
 
 ```text
@@ -68,7 +59,6 @@ egg_app/
 │   ├── __init__.py         # constants + pricing helpers
 │   ├── storage.py          # local CSV data layer
 │   ├── dates.py            # last-Saturday-of-month logic
-│   ├── sms.py              # stubbed SMS (Twilio-ready signature)
 │   └── styles.py           # poster-inspired theme/CSS
 ├── .streamlit/
 │   ├── config.toml         # base theme

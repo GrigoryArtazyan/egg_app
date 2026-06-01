@@ -1,0 +1,14 @@
+[theme]
+primaryColor = "#F26B1D"
+backgroundColor = "#FBF1DC"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#3A2415"
+font = "sans serif"
+
+[server]
+headless = true
+
+[client]
+# Hide the auto page-nav so customers don't see the Admin page.
+# Admin stays reachable directly at /admin.
+showSidebarNavigation = false

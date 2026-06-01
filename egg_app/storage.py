@@ -1,7 +1,7 @@
 """Local CSV data layer. No external services required.
 
-Three CSV files live in a `data/` folder next to the app: customers, orders,
-and messages. Phone number is the dedupe key for customers.
+Two CSV files live in a `data/` folder next to the app: customers and orders.
+Phone number is the dedupe key for customers.
 """
 
 from __future__ import annotations
@@ -29,12 +29,9 @@ ORDERS_HEADERS = [
     "created_at",
     "status",
 ]
-MESSAGES_HEADERS = ["to", "body", "sent_at"]
-
 _FILES = {
     "customers": CUSTOMERS_HEADERS,
     "orders": ORDERS_HEADERS,
-    "messages": MESSAGES_HEADERS,
 }
 
 
@@ -143,8 +140,3 @@ def add_order(
     )
     _clear_cache()
     return order_id
-
-
-def append_message(record: dict) -> None:
-    _append_row("messages", [record["to"], record["body"], record["sent_at"]])
-    _clear_cache()
