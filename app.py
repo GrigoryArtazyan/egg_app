@@ -9,15 +9,18 @@ import streamlit as st
 from egg_app import (
     EGGS_PER_DOZEN,
     EGGS_PER_TRAY,
-    PICKUP_LOCATION,
-    PICKUP_TIME,
     PRICE_DOZEN,
     PRICE_TRAY,
     order_totals,
+    pickup_location,
+    pickup_time,
 )
 from egg_app import dates, storage, styles
 
 TRAY_IMG = Path(__file__).parent / "img" / "tray_eggs_image.png"
+
+PICKUP_LOCATION = pickup_location()
+PICKUP_TIME = pickup_time()
 
 st.set_page_config(page_title="Farm Fresh Eggs", page_icon="🥚", layout="centered")
 styles.inject()
