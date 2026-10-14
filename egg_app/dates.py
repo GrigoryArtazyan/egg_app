@@ -17,6 +17,9 @@ from datetime import date, datetime
 PICKUP_DATES = [
     "2026-06-27",
     "2026-07-25",
+    "2026-11-08",
+    "2026-11-15",
+    "2026-11-22",
 ]
 
 
